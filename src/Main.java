@@ -1,4 +1,7 @@
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
+
 import javax.sound.sampled.Line;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
@@ -25,12 +28,14 @@ public class Main extends Application {
     static int size = 15;
     static Canvas canvas;
     static source sour;
-    static boolean flag = false;
+    static boolean flag = false, autof = false;
     static GraphicsContext gc;
     static double dif = 0;
+    static Timer timer;
+    static TimerTask tt;
     @Override
     public void start(Stage primaryStage) {
-        primaryStage.setTitle("Hello World!");
+        primaryStage.setTitle("Conway-s-Game-of-Life by Astria");
         canvas = new Canvas(1024, 720);
         canvas.relocate(0, 52);
         Pane root = new Pane();
@@ -60,25 +65,103 @@ public class Main extends Application {
         Button NextB = new Button("Next");
         NextB.relocate(300, 25);
         root.getChildren().add(NextB);
-        
+
         NextB.setOnAction(x -> {
-            printArea();
+            if (check(seed.getText(), sizet.getText())) {
+                printArea();
+                if (!flag) {
+                    size = Integer.parseInt(sizet.getText());
+                    dif = canvas.getWidth() / size;
+                    // dif = canvas.getWidth()-(canvas.getHeight()-52);
+                    printArea();
+                    sour = new source(size, Integer.parseInt(seed.getText()));
+                    flag = true;
+                    seed.setDisable(true);
+                    sizet.setDisable(true);
+                } else if(!autof) source.execute();
+                for (int i = 0; i < sour.getaliveCount(); ++i) {
+                    printcell(i);
+                }
+                
+            }
+        });
+
+        
+        Button AutoB = new Button("Auto");
+        AutoB.relocate(350, 25);
+        root.getChildren().add(AutoB);
+        AutoB.setOnAction(x -> {
+            if(check(seed.getText(), sizet.getText(), speed.getText()) ){
             if(!flag){
                 size = Integer.parseInt(sizet.getText());
                 dif = canvas.getWidth()/size;
                 //  dif = canvas.getWidth()-(canvas.getHeight()-52);
                 printArea();
                 sour = new source(size, Integer.parseInt(seed.getText()));
+                for(int i = 0; i < sour.getaliveCount(); ++i){
+                   printcell(i);
+                }
                 flag = true;
-            }else source.execute();
-            for(int i = 0; i < sour.getaliveCount(); ++i){
-                printcell(i);
+                seed.setDisable(true);
+                sizet.setDisable(true);
+                speed.setDisable(true);
+            }else if(!speed.isDisabled()) speed.setDisable(true);
+            if(!autof){
+                createTask();
+                int temp = Integer.parseInt(speed.getText());
+                autof = true;
+                timer = new Timer();
+                if(temp == 0)
+                    timer.schedule(tt, 2000, 2000);
+                else timer.schedule(tt, 1000/temp, 1000/temp);
+            }else {
+                autof = false;
+                timer.cancel();
+                tt = null;
+                speed.setDisable(false);
+            }
             }
             
         });
 
-    }
+        Button RestartB = new Button("Clear");
+        RestartB.relocate(400, 25);
+        root.getChildren().add(RestartB);
+        RestartB.setOnAction(x->{
+            flag = false;
+            autof = false;
+            timer.cancel();
+            tt = null;
+            seed.setDisable(false);
+            sizet.setDisable(false);
+            speed.setDisable(false);
+            gc.setFill(Color.web("#F4F4F4"));
+            gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
+        });
 
+    }
+    static boolean check(String a, String b){
+        return a.matches("[0-9]+") && b.matches("[0-9]+");
+    }
+    static boolean check(String a, String b, String c){
+        return a.matches("[0-9]+") && b.matches("[0-9]+") && c.matches("[0-9]+");
+    }
+    static void createTask(){
+        tt = new TimerTask(){
+            @Override
+            public void run() {
+                if(autof){
+                    source.execute();
+                    printArea();
+                    for(int i = 0; i < sour.getaliveCount(); ++i){
+                       printcell(i);
+                    }
+                }
+
+            }
+            
+        };
+    }
 
     static void printArea(){
         double last = 0;
@@ -91,7 +174,7 @@ public class Main extends Application {
             last = i;
         }
         double down = 0;
-        for(double i = 0; i < h*size; i += h){
+        for(double i = 0; i <= h*size+1; i += h){
             gc.strokeLine(dif/2, i, last, i);
             down = i;
         }
@@ -106,8 +189,8 @@ public class Main extends Application {
         gc.fillRect(x*w+dif/2, y*h, w, h);
     }
     public static void main(String[] args) {
-    launch(args);
-    
+        launch(args);
+        
     }
     
 }
