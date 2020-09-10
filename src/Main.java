@@ -28,17 +28,19 @@ public class Main extends Application {
     static int size = 15;
     static Canvas canvas;
     static source sour;
-    static boolean flag = false, autof = false;
+    static boolean flag = false, autof = false, wipef = false;
     static GraphicsContext gc;
     static double dif = 0;
     static Timer timer;
     static TimerTask tt;
-    static double mouseX, mouseY, lastX;
+    static double mouseX, mouseY, lastX, reW, reH;
     @Override
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Conway-s-Game-of-Life by Astria");
         canvas = new Canvas(1024, 720);
         canvas.relocate(0, 52);
+        reW = 1024;
+        reH = 720;
         Pane root = new Pane();
         root.getChildren().add(canvas);
         primaryStage.setScene(new Scene(root, 1024, 720));
@@ -148,15 +150,40 @@ public class Main extends Application {
                 mouseY = x.getY();
                 flag = true;
             } 
+            if(!wipef) wipef = true;
+            else wipef = false;
             //System.out.println(canvas.getLayoutX() + " " + (x.getX()-mouseX));
-            if((lastX+100 > 100 && x.getX()-mouseX+100 > 100) || (lastX+100 < 100 && x.getX()-mouseX+100 < 100))
+          //  if((lastX+100 > 100 && x.getX()-mouseX+100 > 100) || (lastX+100 < 100 && x.getX()-mouseX+100 < 100))
+            if(!wipef)
                 canvas.relocate(canvas.getLayoutX()+x.getX()-mouseX, canvas.getLayoutY()+x.getY()-mouseY);
             lastX = x.getX()-mouseX;
+            
             mouseX = x.getX();
             mouseY = x.getY();
             
         });
         canvas.setOnMouseReleased(x -> flag = false);
+        
+        canvas.setOnScroll(x ->{
+            double scale = 1.1;
+            System.out.println(canvas.getLayoutX() + " " +x.getX() + " " + (x.getX()+canvas.getLayoutX()) );
+            if(x.getDeltaY()>0){
+                canvas.setHeight(canvas.getHeight()*scale);
+                canvas.setWidth(canvas.getWidth()*scale);
+                canvas.relocate(canvas.getLayoutX()+(x.getX())/canvas.getWidth()*canvas.getWidth()*(1-scale), 
+                    canvas.getLayoutY()+(x.getY())/canvas.getHeight()*canvas.getHeight()*(1-scale));
+                
+            }else{
+                canvas.setHeight(canvas.getHeight()/scale);
+                canvas.setWidth(canvas.getWidth()/scale);
+                canvas.relocate(canvas.getLayoutX()-(x.getX())/canvas.getWidth()*canvas.getWidth()*(1-scale), 
+                    canvas.getLayoutY()-(x.getY())/canvas.getHeight()*canvas.getHeight()*(1-scale));
+            }
+            printArea();
+            for (int i = 0; i < sour.getaliveCount(); ++i) {
+                printcell(i);
+            }
+        });
         
     }
     static boolean check(String a, String b){
