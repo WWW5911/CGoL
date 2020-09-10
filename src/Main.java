@@ -33,6 +33,7 @@ public class Main extends Application {
     static double dif = 0;
     static Timer timer;
     static TimerTask tt;
+    static double mouseX, mouseY, lastX;
     @Override
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Conway-s-Game-of-Life by Astria");
@@ -130,7 +131,8 @@ public class Main extends Application {
         RestartB.setOnAction(x->{
             flag = false;
             autof = false;
-            timer.cancel();
+            if(timer != null)
+                timer.cancel();
             tt = null;
             seed.setDisable(false);
             sizet.setDisable(false);
@@ -139,6 +141,23 @@ public class Main extends Application {
             gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
         });
 
+        lastX = 0;
+        canvas.setOnMouseDragged(x ->{
+            if(!flag){
+                mouseX = x.getX();
+                mouseY = x.getY();
+                flag = true;
+            } 
+            //System.out.println(canvas.getLayoutX() + " " + (x.getX()-mouseX));
+            if((lastX+100 > 100 && x.getX()-mouseX+100 > 100) || (lastX+100 < 100 && x.getX()-mouseX+100 < 100))
+                canvas.relocate(canvas.getLayoutX()+x.getX()-mouseX, canvas.getLayoutY()+x.getY()-mouseY);
+            lastX = x.getX()-mouseX;
+            mouseX = x.getX();
+            mouseY = x.getY();
+            
+        });
+        canvas.setOnMouseReleased(x -> flag = false);
+        
     }
     static boolean check(String a, String b){
         return a.matches("[0-9]+") && b.matches("[0-9]+");
@@ -178,8 +197,8 @@ public class Main extends Application {
             gc.strokeLine(dif/2, i, last, i);
             down = i;
         }
-        gc.setFill(Color.AQUA);
-        gc.fillRect(0, down, canvas.getWidth(), canvas.getHeight()/size);
+     //   gc.setFill(Color.AQUA);
+     //   gc.fillRect(0, down, canvas.getWidth(), canvas.getHeight()/size);
     }
     static void printcell(int index){
         cell cel = sour.getCell(index);
