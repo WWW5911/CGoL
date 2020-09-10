@@ -1,23 +1,14 @@
-import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import javax.sound.sampled.Line;
 import javafx.application.Application;
-import javafx.event.ActionEvent;
-import javafx.event.Event;
-import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
-import javafx.scene.shape.Circle;
-import javafx.scene.control.ColorPicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
@@ -33,16 +24,21 @@ public class Main extends Application {
     static double dif = 0;
     static Timer timer;
     static TimerTask tt;
-    static double mouseX, mouseY, lastX, reW, reH;
+    static double mouseX, mouseY, lastX, oriW, oriH;
     @Override
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Conway-s-Game-of-Life by Astria");
         canvas = new Canvas(1024, 720);
         canvas.relocate(0, 52);
-        reW = 1024;
-        reH = 720;
+        oriW = 1024;
+        oriH = 720;
         Pane root = new Pane();
+        Canvas head = new Canvas(1024, 52);
+        GraphicsContext gch = head.getGraphicsContext2D();
+        gch.setFill(Color.web("#F4F4F4"));
+        gch.fillRect(0, 0, 1024, 52);
         root.getChildren().add(canvas);
+        root.getChildren().add(head);
         primaryStage.setScene(new Scene(root, 1024, 720));
         primaryStage.show();
         gc = canvas.getGraphicsContext2D();
@@ -152,7 +148,6 @@ public class Main extends Application {
             } 
             if(!wipef) wipef = true;
             else wipef = false;
-            //System.out.println(canvas.getLayoutX() + " " + (x.getX()-mouseX));
           //  if((lastX+100 > 100 && x.getX()-mouseX+100 > 100) || (lastX+100 < 100 && x.getX()-mouseX+100 < 100))
             if(!wipef)
                 canvas.relocate(canvas.getLayoutX()+x.getX()-mouseX, canvas.getLayoutY()+x.getY()-mouseY);
@@ -165,15 +160,15 @@ public class Main extends Application {
         canvas.setOnMouseReleased(x -> flag = false);
         
         canvas.setOnScroll(x ->{
-            double scale = 1.1;
-            System.out.println(canvas.getLayoutX() + " " +x.getX() + " " + (x.getX()+canvas.getLayoutX()) );
-            if(x.getDeltaY()>0){
+            double scale = 1.1, nowx = canvas.getWidth(), nowy = canvas.getHeight();
+            if(x.getDeltaY()>0 && nowx*1.1 < oriW*9 && nowy*1.1 < oriH*9){
                 canvas.setHeight(canvas.getHeight()*scale);
                 canvas.setWidth(canvas.getWidth()*scale);
                 canvas.relocate(canvas.getLayoutX()+(x.getX())/canvas.getWidth()*canvas.getWidth()*(1-scale), 
                     canvas.getLayoutY()+(x.getY())/canvas.getHeight()*canvas.getHeight()*(1-scale));
                 
-            }else{
+            }
+            if(x.getDeltaY()<0 && nowx/1.1 > oriW/10 && nowy/1.1 > oriH/10){
                 canvas.setHeight(canvas.getHeight()/scale);
                 canvas.setWidth(canvas.getWidth()/scale);
                 canvas.relocate(canvas.getLayoutX()-(x.getX())/canvas.getWidth()*canvas.getWidth()*(1-scale), 
@@ -219,10 +214,10 @@ public class Main extends Application {
             gc.strokeLine(i, 0, i, canvas.getHeight()-52);
             last = i;
         }
-        double down = 0;
+       // double down = 0;
         for(double i = 0; i <= h*size+1; i += h){
             gc.strokeLine(dif/2, i, last, i);
-            down = i;
+      //      down = i;
         }
      //   gc.setFill(Color.AQUA);
      //   gc.fillRect(0, down, canvas.getWidth(), canvas.getHeight()/size);
